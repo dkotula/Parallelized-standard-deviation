@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 int main(int argc, char *argv[])
 {
@@ -29,5 +28,6 @@ int main(int argc, char *argv[])
     }
 
     fclose(f);
+
     return 0;
 }
