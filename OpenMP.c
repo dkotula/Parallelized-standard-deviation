@@ -40,13 +40,14 @@ int main(int argc, char *argv[])
     fclose(f);
 
     n = 0;
+    omp_set_num_threads(8);
     start = omp_get_wtime();
 
-    #pragma omp parallel for reduction(+ : sum) private(sumOfDigits) shared(n)
+    #pragma omp parallel for reduction(+ : sum) reduction(+ : n) private(numberCopy, sumOfDigits)
     for (i = 0; i < N; i++)
     {
-        numberCopy = A[i];
         sumOfDigits = 0;
+        numberCopy = A[i];
 
         while (numberCopy > 0)
         {
