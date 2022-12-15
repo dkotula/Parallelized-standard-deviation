@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
+#include <math.h>
 
 int main(int argc, char *argv[])
 {
     int i, n, N, numberCopy, sumOfDigits;
     unsigned long long int sum = 0;
-    long double sd = 0.0;
+    long double mean = 0.0, sd = 0.0;
     double start, end;
     FILE *f = fopen("numbers.txt", "r");
 
@@ -62,10 +63,28 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (n > 0)
+    mean = sum / n;
+
+    sum = 0;
+    #pragma omp parallel for reduction(+ : sum) private(numberCopy, sumOfDigits)
+    for (i = 0; i < N; i++)
     {
-        sd = sum / n;
+        numberCopy = A[i];
+        sumOfDigits = 0;
+
+        while (numberCopy > 0)
+        {
+            sumOfDigits += numberCopy % 10;
+            numberCopy /= 10;
+        }
+
+        if (sumOfDigits > 30)
+        {
+            sum += (A[i] - mean) * (A[i] - mean);
+        }
     }
+
+    sd = sqrt(sum)
 
     end = omp_get_wtime();
     printf("sum: %llu\nn: %d\n", sum, n);

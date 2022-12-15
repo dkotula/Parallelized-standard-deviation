@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <omp.h>
 #include "mpi.h"
+#include <math.h>
 
 int main(int argc, char *argv[])
 {
     int i, n, N, numberCopy, sumOfDigits, rank, size, indices[2], index;
     unsigned long long int sum[2], sum_temp;
-    long double sd = 0.0;
+    long double mean = 0.0, sd = 0.0, indicesWithMean[3], sum_Sd;
     double start, end;
 
     FILE *f = fopen("numbers.txt", "r");
@@ -68,10 +69,28 @@ int main(int argc, char *argv[])
             n += sum[1];
         }
 
-        if (n > 0)
+        mean = sum_temp / n;
+
+        for (i = 1; i < size; i++)
         {
-            sd = sum_temp / n;
+            indicesWithMean[0] = (i - 1) * interval + 0.1;
+            indicesWithMean[1] = i * interval + 0.1;
+            indicesWithMean[2] = mean;
+            if (i == size - 1)
+            {
+                indices[1] = N;
+            }
+            MPI_Send(indicesWithMean, 3, MPI_LONG_DOUBLE, i, 0, MPI_COMM_WORLD);
         }
+
+        sum_Sd = 0.0;
+        for (i = 1; i < size; i++)
+        {
+            MPI_Recv(&sd, 1, MPI_LONG_DOUBLE, i, MPI_ANY_TAG, MPI_COMM_WORLD, NULL);
+            sum_Sd += sd;
+        }
+
+        sd = sum_Sd(sum);
 
         end = MPI_Wtime();
         printf("sum: %llu\nn: %d\n", sum_temp, n);
@@ -104,6 +123,27 @@ int main(int argc, char *argv[])
         sum[0] = sum_temp;
         sum[1] = n;
         MPI_Send(sum, 2, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
+        
+        MPI_Recv(indicesWithMean, 3, MPI_LONG_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
+        sum_Sd = 0.0;
+        #pragma omp parallel for reduction(+ : sum_Sd) private(numberCopy, sumOfDigits)
+        for (index = int(indicesWithMean[0]); index < int(indicesWithMean[1]); index++)
+        {
+            sumOfDigits = 0;
+            numberCopy = A[index];
+
+            while (numberCopy > 0)
+            {
+                sumOfDigits += numberCopy % 10;
+                numberCopy /= 10;
+            }
+
+            if (sumOfDigits > 35)
+            {
+                sum_Sd += (A[i] - indicesWithMean[2]) * (A[i] - indicesWithMean[2]);
+            }
+        }
+        MPI_Send(sum_Sd, 1, MPI_LONG_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 
     MPI_Finalize();

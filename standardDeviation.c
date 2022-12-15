@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 int main(int argc, char *argv[])
 {
     int i, n, N, numberCopy, sumOfDigits;
     unsigned long long int sum = 0;
-    long double sd = 0.0;
+    long double mean = 0.0, sd = 0.0;
     clock_t start, end;
     FILE *f = fopen("numbers.txt", "r");
 
@@ -59,10 +60,27 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (n > 0)
+    mean = sum / n;
+
+    sum = 0;
+    for (i = 0; i < N; i++)
     {
-        sd = sum / n;
+        numberCopy = A[i];
+        sumOfDigits = 0;
+
+        while (numberCopy > 0)
+        {
+            sumOfDigits += numberCopy % 10;
+            numberCopy /= 10;
+        }
+
+        if (sumOfDigits > 30)
+        {
+            sum += (A[i] - mean) * (A[i] - mean);
+        }
     }
+
+    sd = sqrt(sum);
 
     end = clock();
     printf("Standard deviation: %Lf\nTime: %f\n", sd, ((float)(end - start)) / CLOCKS_PER_SEC);
