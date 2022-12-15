@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
             sum_Sd += sd;
         }
 
-        sd = sum_Sd(sum);
+        sd = sqrt(sum_Sd);
 
         end = MPI_Wtime();
         printf("sum: %llu\nn: %d\n", sum_temp, n);
@@ -126,8 +126,10 @@ int main(int argc, char *argv[])
         
         MPI_Recv(indicesWithMean, 3, MPI_LONG_DOUBLE, 0, 0, MPI_COMM_WORLD, NULL);
         sum_Sd = 0.0;
+        int lb = indicesWithMean[0];
+        int ub = indicesWithMean[1];
         #pragma omp parallel for reduction(+ : sum_Sd) private(numberCopy, sumOfDigits)
-        for (index = int(indicesWithMean[0]); index < int(indicesWithMean[1]); index++)
+        for (index = lb; index < ub; index++)
         {
             sumOfDigits = 0;
             numberCopy = A[index];
@@ -143,7 +145,7 @@ int main(int argc, char *argv[])
                 sum_Sd += (A[i] - indicesWithMean[2]) * (A[i] - indicesWithMean[2]);
             }
         }
-        MPI_Send(sum_Sd, 1, MPI_LONG_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(&sum_Sd, 1, MPI_LONG_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 
     MPI_Finalize();

@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
     sd = sqrt(sum);
 
     end = clock();
+    printf("sum: %llu\nn: %d\n", sum, n);
     printf("Standard deviation: %Lf\nTime: %f\n", sd, ((float)(end - start)) / CLOCKS_PER_SEC);
 
     free(A);

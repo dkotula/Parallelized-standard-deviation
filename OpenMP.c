@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    sd = sqrt(sum)
+    sd = sqrt(sum);
 
     end = omp_get_wtime();
     printf("sum: %llu\nn: %d\n", sum, n);
